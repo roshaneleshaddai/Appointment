@@ -25,6 +25,8 @@ async def connect_db():
     await db.doctors.create_index("email", unique=True)
     await db.doctor_schedules.create_index([("doctorId", 1), ("date", 1)])
     await db.appointments.create_index("scheduleId", unique=True)
+    await db.prescriptions.create_index("appointmentId", unique=True)
+    await db.reviews.create_index([("doctorId", 1), ("patientId", 1)])
     print("✅ MongoDB connected")
 
 

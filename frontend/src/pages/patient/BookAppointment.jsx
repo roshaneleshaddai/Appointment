@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
-import { Video, MapPin, CheckCircle, ChevronRight, ChevronLeft, Loader2 } from 'lucide-react';
+import { Video, Building2, CheckCircle, ChevronRight, ChevronLeft, Loader2 } from 'lucide-react';
 
 const STEPS = ['Choose Mode', 'Specialty', 'Select Doctor', 'Time Slot', 'Confirm'];
 const SPECIALTIES = [
@@ -28,12 +28,10 @@ export default function BookAppointment() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  // If mode pre-selected from URL, skip step 1
   useEffect(() => {
     if (searchParams.get('mode')) setStep(2);
   }, []);
 
-  // Fetch doctors when specialty+mode chosen
   useEffect(() => {
     if (step === 3 && mode && specialty) {
       setLoading(true);
@@ -44,7 +42,6 @@ export default function BookAppointment() {
     }
   }, [step]);
 
-  // Fetch slots when doctor + date selected
   useEffect(() => {
     if (selectedDoctor && selectedDate) {
       setLoading(true);
@@ -75,20 +72,20 @@ export default function BookAppointment() {
 
   if (success) {
     return (
-      <div className="max-w-lg mx-auto mt-20 text-center">
-        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <CheckCircle className="w-10 h-10 text-green-600" />
+      <div className="max-w-[700px] mx-auto mt-20 text-center">
+        <div className="w-24 h-24 bg-[#ECFDF5] rounded-full flex items-center justify-center mx-auto mb-6">
+          <CheckCircle className="w-12 h-12 text-[#10B981]" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Appointment Booked!</h2>
-        <p className="text-gray-500 mb-2">Your appointment with <strong>{selectedDoctor?.name}</strong> is confirmed.</p>
-        <p className="text-gray-400 text-sm mb-8">{selectedDate} · {selectedSlot?.timeSlot}</p>
-        <div className="flex gap-3 justify-center">
+        <h2 className="text-[28px] font-bold text-gray-900 mb-2">Appointment Booked!</h2>
+        <p className="text-[15px] text-gray-500 mb-2">Your appointment with <strong className="text-gray-900">{selectedDoctor?.name}</strong> is confirmed.</p>
+        <p className="text-gray-500 text-sm mb-10">{selectedDate} · {selectedSlot?.timeSlot}</p>
+        <div className="flex gap-4 justify-center">
           <button onClick={() => navigate('/patient/appointments')}
-            className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-blue-700 transition text-sm">
+            className="bg-[#2563EB] text-white px-8 py-3 rounded-xl font-semibold hover:bg-blue-700 transition shadow-sm">
             View My Appointments
           </button>
           <button onClick={() => { setStep(1); setSuccess(false); setMode(''); setSpecialty(''); setSelectedDoctor(null); setSelectedSlot(null); }}
-            className="border border-gray-200 text-gray-600 px-6 py-2.5 rounded-xl font-medium hover:border-gray-300 transition text-sm">
+            className="border border-[#E5E7EB] text-[#4B5563] px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition shadow-sm">
             Book Another
           </button>
         </div>
@@ -97,53 +94,70 @@ export default function BookAppointment() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Book an Appointment</h1>
-        <p className="text-gray-500 mt-1">Follow the steps below to schedule your appointment</p>
+    <div className="max-w-[900px] mx-auto pb-12">
+      <div className="mb-10">
+        <h1 className="text-[28px] font-bold text-gray-900 leading-tight">Book an Appointment</h1>
+        <p className="text-[#6B7280] text-[15px] mt-1">Follow the steps below to schedule your appointment with our specialists</p>
       </div>
 
-      {/* Step Indicator */}
-      <div className="flex items-center mb-8">
+      {/* Modern Step Indicator */}
+      <div className="flex items-center justify-center mb-12 max-w-[700px] mx-auto">
         {STEPS.map((label, i) => {
           const n = i + 1;
           const active = n === step;
           const done = n < step;
           return (
             <div key={label} className="flex items-center flex-1 last:flex-none">
-              <div className="flex flex-col items-center">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${done ? 'bg-blue-600 text-white' : active ? 'bg-blue-600 text-white ring-4 ring-blue-100' : 'bg-gray-100 text-gray-400'}`}>
-                  {done ? <CheckCircle className="w-5 h-5" /> : n}
+              <div className="flex flex-col items-center relative z-10">
+                <div className={`w-[44px] h-[44px] rounded-full flex items-center justify-center text-[15px] font-bold transition-all shadow-sm ${
+                  done ? 'bg-[#2563EB] text-white' : 
+                  active ? 'bg-[#2563EB] text-white ring-4 ring-blue-100' : 
+                  'bg-[#F3F4F6] text-[#9CA3AF]'
+                }`}>
+                  {n}
                 </div>
-                <span className={`text-xs mt-1.5 font-medium ${active ? 'text-blue-600' : done ? 'text-gray-700' : 'text-gray-400'}`}>{label}</span>
+                <span className={`absolute top-[54px] text-[12px] font-semibold text-center w-24 ${
+                  active ? 'text-[#2563EB]' : done ? 'text-[#4B5563]' : 'text-[#9CA3AF]'
+                }`}>
+                  {label}
+                </span>
               </div>
               {i < STEPS.length - 1 && (
-                <div className={`flex-1 h-0.5 mx-2 mb-4 ${done ? 'bg-blue-600' : 'bg-gray-200'}`} />
+                <div className={`flex-1 h-[2px] mx-[-10px] ${done ? 'bg-[#2563EB]' : 'bg-[#E5E7EB]'}`} />
               )}
             </div>
           );
         })}
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+      {/* Spacing for absolute text above */}
+      <div className="h-4"></div>
+
+      <div className="bg-white rounded-[16px] border border-[#E5E7EB] shadow-[0_1px_2px_0_rgba(0,0,0,0.02)] p-8">
+        
         {/* STEP 1: Mode */}
         {step === 1 && (
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-1">Choose Consultation Mode</h2>
-            <p className="text-gray-400 text-sm mb-6">Select how you would like to consult with the doctor</p>
-            <div className="grid grid-cols-2 gap-4">
-              {['ONLINE', 'OFFLINE'].map((m) => (
-                <button key={m} onClick={() => { setMode(m); setStep(2); }}
-                  className="flex flex-col items-center gap-3 p-6 border-2 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition group">
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${m === 'ONLINE' ? 'bg-blue-100' : 'bg-orange-100'}`}>
-                    {m === 'ONLINE' ? <Video className="w-7 h-7 text-blue-600" /> : <MapPin className="w-7 h-7 text-orange-600" />}
+            <h2 className="text-[20px] font-bold text-gray-900 mb-1">Choose Consultation Mode</h2>
+            <p className="text-[#6B7280] text-[15px] mb-8">Select how you would like to consult with the doctor</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                { id: 'ONLINE', title: 'Online Consultation', desc: 'Video call with doctor from anywhere', tag: 'Instant access', icon: Video, color: 'blue' },
+                { id: 'OFFLINE', title: 'In-Person Visit', desc: 'Visit doctor at clinic or hospital', tag: 'Physical examination', icon: Building2, color: 'purple' }
+              ].map((m) => (
+                <button key={m.id} onClick={() => { setMode(m.id); setStep(2); }}
+                  className={`flex flex-col items-center p-8 border-2 rounded-[16px] transition-all group ${
+                    mode === m.id ? 'border-blue-500 bg-blue-50/50' : 'border-[#E5E7EB] hover:border-blue-300 hover:bg-gray-50'
+                  }`}>
+                  <div className={`w-[72px] h-[72px] rounded-full flex items-center justify-center mb-6 shadow-sm ${
+                    m.color === 'blue' ? 'bg-[#EFF6FF] text-[#3B82F6]' : 'bg-[#F5F3FF] text-[#8B5CF6]'
+                  }`}>
+                    <m.icon className="w-8 h-8" strokeWidth={1.5} />
                   </div>
-                  <div className="text-center">
-                    <p className="font-semibold text-gray-900">{m === 'ONLINE' ? 'Online Consultation' : 'In-Person Visit'}</p>
-                    <p className="text-xs text-gray-400 mt-1">{m === 'ONLINE' ? 'Video call from anywhere' : 'Visit doctor at clinic'}</p>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-green-600 font-medium">
-                    <CheckCircle className="w-3.5 h-3.5" /> {m === 'ONLINE' ? 'Instant access' : 'Physical examination'}
+                  <h3 className="text-[18px] font-bold text-gray-900 mb-2">{m.title}</h3>
+                  <p className="text-[14px] text-[#6B7280] text-center mb-6">{m.desc}</p>
+                  <div className="flex items-center gap-1.5 text-[13px] text-[#059669] font-medium bg-[#ECFDF5] px-3 py-1 rounded-full">
+                    <CheckCircle className="w-3.5 h-3.5" /> {m.tag}
                   </div>
                 </button>
               ))}
@@ -154,12 +168,15 @@ export default function BookAppointment() {
         {/* STEP 2: Specialty */}
         {step === 2 && (
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-1">Choose Specialty</h2>
-            <p className="text-gray-400 text-sm mb-6">What type of doctor do you need?</p>
-            <div className="grid grid-cols-3 gap-3">
+            <h2 className="text-[20px] font-bold text-gray-900 mb-1">Choose Specialty</h2>
+            <p className="text-[#6B7280] text-[15px] mb-8">What type of doctor do you need?</p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {SPECIALTIES.map((s) => (
                 <button key={s} onClick={() => { setSpecialty(s); setStep(3); }}
-                  className={`px-3 py-3 text-sm font-medium rounded-xl border-2 text-left transition-all ${specialty === s ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50'}`}>
+                  className={`px-4 py-4 text-[15px] font-semibold rounded-[12px] border-2 text-center transition-all ${
+                    specialty === s ? 'border-[#3B82F6] bg-[#EFF6FF] text-[#1D4ED8]' : 
+                    'border-[#E5E7EB] text-[#4B5563] hover:border-[#BFDBFE] hover:bg-[#F8FAFC]'
+                  }`}>
                   {s}
                 </button>
               ))}
@@ -170,36 +187,44 @@ export default function BookAppointment() {
         {/* STEP 3: Doctor */}
         {step === 3 && (
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-1">Select Doctor</h2>
-            <p className="text-gray-400 text-sm mb-6">
-              {mode === 'ONLINE' ? 'Online' : 'In-clinic'} {specialty} doctors available
+            <h2 className="text-[20px] font-bold text-gray-900 mb-1">Select Doctor</h2>
+            <p className="text-[#6B7280] text-[15px] mb-8">
+              {mode === 'ONLINE' ? 'Online video' : 'In-clinic'} {specialty} specialists available
             </p>
             {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="w-8 h-8 text-[#3B82F6] animate-spin" />
               </div>
             ) : doctors.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-400 text-sm">No {mode.toLowerCase()} {specialty} doctors available</p>
-                <button onClick={() => setStep(2)} className="text-blue-600 text-sm font-medium mt-2 hover:underline">Change specialty</button>
+              <div className="text-center py-16 bg-gray-50 rounded-xl border border-gray-100">
+                <p className="text-gray-500 font-medium">No {mode.toLowerCase()} {specialty} doctors available</p>
+                <button onClick={() => setStep(2)} className="text-[#3B82F6] font-semibold mt-3 hover:underline">Change specialty</button>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {doctors.map((d) => (
                   <button key={d.id} onClick={() => setSelectedDoctor(d)}
-                    className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all ${selectedDoctor?.id === d.id ? 'border-blue-600 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}>
-                    <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold text-lg flex-shrink-0">
+                    className={`w-full flex items-center gap-5 p-5 rounded-[12px] border-2 text-left transition-all ${
+                      selectedDoctor?.id === d.id ? 'border-[#3B82F6] bg-[#EFF6FF] shadow-sm' : 
+                      'border-[#E5E7EB] hover:border-[#BFDBFE] hover:shadow-sm'
+                    }`}>
+                    <div className="w-14 h-14 rounded-full bg-[#1D4ED8] flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
                       {d.name?.[0]}
                     </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-gray-900">{d.name}</p>
-                      <p className="text-sm text-gray-500">{d.specialty}</p>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${d.mode === 'ONLINE' ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`}>{d.mode}</span>
-                        <span className="text-sm font-semibold text-gray-900">${d.fee}</span>
+                      <p className="font-bold text-gray-900 text-[16px]">{d.name}</p>
+                      <p className="text-[14px] text-gray-500 mt-0.5">{d.specialty}</p>
+                      <div className="flex items-center gap-3 mt-2">
+                        <span className={`text-[12px] font-bold px-2.5 py-0.5 rounded-md uppercase tracking-wide flex items-center gap-1 ${
+                          d.mode === 'ONLINE' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                        }`}>
+                          {d.mode === 'ONLINE' ? <Video className="w-3.5 h-3.5"/> : <Building2 className="w-3.5 h-3.5"/>}
+                          {d.mode}
+                        </span>
+                        <span className="text-[14px] font-bold text-gray-700 border-l border-gray-300 pl-3">Fee: ${d.fee}</span>
                       </div>
                     </div>
-                    {selectedDoctor?.id === d.id && <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />}
+                    {selectedDoctor?.id === d.id && <CheckCircle className="w-6 h-6 text-[#2563EB] flex-shrink-0" />}
                   </button>
                 ))}
               </div>
@@ -210,28 +235,33 @@ export default function BookAppointment() {
         {/* STEP 4: Time Slot */}
         {step === 4 && (
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-1">Select Date & Time Slot</h2>
-            <p className="text-gray-400 text-sm mb-6">Available slots for {selectedDoctor?.name}</p>
-            <div className="mb-5">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Choose Date</label>
+            <h2 className="text-[20px] font-bold text-gray-900 mb-1">Select Date & Time Slot</h2>
+            <p className="text-[#6B7280] text-[15px] mb-8">Available slots for {selectedDoctor?.name}</p>
+            <div className="mb-8 max-w-md">
+              <label className="block text-[14px] font-semibold text-gray-700 mb-2">Choose Date</label>
               <input type="date" value={selectedDate} min={new Date().toISOString().split('T')[0]}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full px-4 py-3 border border-gray-300 rounded-[10px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:border-transparent transition-shadow" />
             </div>
             {selectedDate && (
               loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 text-[#3B82F6] animate-spin" />
                 </div>
               ) : slots.length === 0 ? (
-                <p className="text-gray-400 text-sm text-center py-6">No available slots for this date.</p>
+                <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-100">
+                  <p className="text-gray-500 font-medium">No available slots for this date.</p>
+                </div>
               ) : (
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-3">{slots.length} slots available</p>
-                  <div className="grid grid-cols-3 gap-2">
+                  <p className="text-[14px] font-bold text-gray-900 mb-4">{slots.length} slots available on {selectedDate}</p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {slots.map((s) => (
                       <button key={s.id} onClick={() => setSelectedSlot(s)}
-                        className={`py-2.5 px-3 text-sm rounded-lg border-2 font-medium transition-all ${selectedSlot?.id === s.id ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-gray-200 text-gray-700 hover:border-blue-300'}`}>
+                        className={`py-3 px-4 text-[14px] rounded-[10px] border-2 font-bold transition-all ${
+                          selectedSlot?.id === s.id ? 'border-[#3B82F6] bg-[#3B82F6] text-white shadow-md' : 
+                          'border-[#E5E7EB] text-gray-700 hover:border-[#BFDBFE]'
+                        }`}>
                         {s.timeSlot}
                       </button>
                     ))}
@@ -245,63 +275,68 @@ export default function BookAppointment() {
         {/* STEP 5: Confirm */}
         {step === 5 && (
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-1">Confirm Appointment</h2>
-            <p className="text-gray-400 text-sm mb-6">Review your appointment details before confirming</p>
-            <div className="bg-gray-50 rounded-xl p-5 space-y-3 mb-6">
-              <div className="flex justify-between text-sm">
+            <h2 className="text-[20px] font-bold text-gray-900 mb-1">Confirm Appointment</h2>
+            <p className="text-[#6B7280] text-[15px] mb-8">Review your appointment details before confirming</p>
+            
+            <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-[16px] p-6 space-y-4 mb-8">
+              <div className="flex justify-between items-center text-[15px]">
                 <span className="text-gray-500">Doctor</span>
-                <span className="font-semibold text-gray-900">{selectedDoctor?.name}</span>
+                <span className="font-bold text-gray-900">{selectedDoctor?.name}</span>
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between items-center text-[15px]">
                 <span className="text-gray-500">Specialty</span>
-                <span className="font-medium text-gray-700">{selectedDoctor?.specialty}</span>
+                <span className="font-semibold text-gray-700">{selectedDoctor?.specialty}</span>
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between items-center text-[15px] border-b border-gray-200 pb-4">
                 <span className="text-gray-500">Mode</span>
-                <span className={`font-medium px-2 py-0.5 rounded-full text-xs ${mode === 'ONLINE' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>{mode}</span>
+                <span className={`font-bold px-2.5 py-0.5 rounded-md capitalize ${mode === 'ONLINE' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>{mode.toLowerCase()}</span>
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between items-center text-[15px] pt-2">
                 <span className="text-gray-500">Date</span>
-                <span className="font-medium text-gray-700">{selectedDate}</span>
+                <span className="font-semibold text-gray-900">{selectedDate}</span>
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between items-center text-[15px]">
                 <span className="text-gray-500">Time</span>
-                <span className="font-medium text-gray-700">{selectedSlot?.timeSlot}</span>
+                <span className="font-bold text-gray-900">{selectedSlot?.timeSlot}</span>
               </div>
-              <div className="border-t border-gray-200 pt-3 flex justify-between">
-                <span className="font-semibold text-gray-900">Fee</span>
-                <span className="font-bold text-blue-600 text-lg">${selectedDoctor?.fee}</span>
+              <div className="border-t border-[#CBD5E1] pt-5 mt-4 flex justify-between items-center">
+                <span className="font-bold text-gray-900">Total Fee</span>
+                <span className="font-extrabold text-[#2563EB] text-[24px] tracking-tight">${selectedDoctor?.fee}</span>
               </div>
             </div>
+
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3 mb-4">{error}</div>
+              <div className="bg-red-50 border border-red-200 text-red-600 text-sm font-medium rounded-lg px-4 py-3 mb-6 flex items-center gap-2">
+                {error}
+              </div>
             )}
+
             <button onClick={handleBook} disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition disabled:opacity-60 flex items-center justify-center gap-2">
-              {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Booking...</> : 'Confirm Booking'}
+              className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white py-4 rounded-[12px] font-bold text-[16px] transition-colors shadow-sm disabled:opacity-60 flex items-center justify-center gap-2">
+              {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> Processing...</> : 'Confirm Booking'}
             </button>
           </div>
         )}
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between mt-6">
+        <div className="flex justify-between items-center mt-12 pt-6 border-t border-gray-100">
           {step > 1 && (
             <button onClick={() => { setStep((s) => s - 1); setError(''); }}
-              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 font-medium transition">
-              <ChevronLeft className="w-4 h-4" /> Back
+              className="flex items-center gap-1 text-[15px] text-[#6B7280] hover:text-gray-900 font-semibold transition px-2 py-1 rounded-md hover:bg-gray-100">
+              <ChevronLeft className="w-5 h-5" /> Back
             </button>
           )}
           <div className="ml-auto">
             {step === 3 && selectedDoctor && (
               <button onClick={() => setStep(4)}
-                className="flex items-center gap-1.5 bg-blue-600 text-white px-5 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition">
-                Next <ChevronRight className="w-4 h-4" />
+                className="flex items-center gap-1.5 bg-[#2563EB] text-white px-6 py-2.5 rounded-[10px] text-[15px] font-semibold hover:bg-[#1D4ED8] shadow-sm transition">
+                Next Step <ChevronRight className="w-4 h-4" />
               </button>
             )}
             {step === 4 && selectedSlot && (
               <button onClick={() => setStep(5)}
-                className="flex items-center gap-1.5 bg-blue-600 text-white px-5 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition">
-                Review <ChevronRight className="w-4 h-4" />
+                className="flex items-center gap-1.5 bg-[#2563EB] text-white px-6 py-2.5 rounded-[10px] text-[15px] font-semibold hover:bg-[#1D4ED8] shadow-sm transition">
+                Review Details <ChevronRight className="w-4 h-4" />
               </button>
             )}
           </div>
