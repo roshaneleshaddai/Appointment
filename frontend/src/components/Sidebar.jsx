@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Calendar as CalendarIcon, ClipboardList,
-  Search, CreditCard, Settings, LogOut, ArrowRightLeft
+  Search, CreditCard, Settings, LogOut, ArrowRightLeft, Users
 } from 'lucide-react';
 
 const navConfig = {
@@ -15,6 +15,7 @@ const navConfig = {
   ],
   doctor: [
     { to: '/doctor/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/doctor/patients', label: 'Patients', icon: Users },
     { to: '/doctor/appointments', label: 'Appointments', icon: ClipboardList },
     { to: '/doctor/schedule', label: 'Schedule', icon: CalendarIcon },
     { to: '/doctor/settings', label: 'Settings', icon: Settings },

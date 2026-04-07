@@ -9,6 +9,7 @@ export default function DoctorSchedule() {
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [slotToDelete, setSlotToDelete] = useState(null);
 
   const fetchSlots = async (d) => {
     if (!d) return;
@@ -23,12 +24,13 @@ export default function DoctorSchedule() {
 
   useEffect(() => { fetchSlots(date); }, [date]);
 
-  const handleDelete = async (slotId) => {
-    if (!confirm('Are you sure you want to mark this slot as unavailable?')) return;
+  const confirmDelete = async () => {
+    if (!slotToDelete) return;
     try {
-      await api.delete(`/api/schedule/${slotId}`);
+      await api.delete(`/api/schedule/${slotToDelete}`);
       // Remove it instantly from UI
-      setSlots((prev) => prev.filter((s) => s.id !== slotId));
+      setSlots((prev) => prev.filter((s) => s.id !== slotToDelete));
+      setSlotToDelete(null);
     } catch (err) {
       alert(err.response?.data?.detail || 'Cannot delete slot');
     }
@@ -60,14 +62,14 @@ export default function DoctorSchedule() {
               <button onClick={() => shiftDate(1)} className="px-3 py-1.5 hover:bg-gray-50 text-gray-600 font-medium rounded-md text-sm transition">Next &rarr;</button>
             </div>
           </div>
-          
+
           <div className="flex items-center bg-white border border-[#3B82F6] rounded-xl px-4 py-2.5 shadow-[0_0_0_2px_rgba(59,130,246,0.1)] ring-1 ring-blue-500 relative">
             <Calendar className="w-5 h-5 text-[#3B82F6] mr-3" />
-            <input 
-              type="date" 
-              value={date} 
+            <input
+              type="date"
+              value={date}
               min={new Date().toISOString().split('T')[0]}
-              onChange={(e) => setDate(e.target.value)} 
+              onChange={(e) => setDate(e.target.value)}
               className="bg-transparent text-[#1F2937] font-semibold focus:outline-none placeholder-gray-400 [&::-webkit-calendar-picker-indicator]:bg-transparent [&::-webkit-calendar-picker-indicator]:bottom-0 [&::-webkit-calendar-picker-indicator]:left-0 [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:top-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 cursor-pointer"
             />
           </div>
@@ -102,7 +104,7 @@ export default function DoctorSchedule() {
 
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {slots.map((s) => (
-                  <div 
+                  <div
                     key={s.id}
                     className={`group relative overflow-hidden rounded-xl border ${s.bookedFlag ? 'bg-orange-50/50 border-orange-200' : 'bg-white border-gray-200 hover:border-[#3B82F6] hover:shadow-[0_2px_8px_-3px_rgba(6,81,237,0.15)] hover:-translate-y-0.5'} transition-all p-4 flex flex-col items-center justify-center`}
                   >
@@ -118,8 +120,8 @@ export default function DoctorSchedule() {
                     </span>
 
                     {!s.bookedFlag && (
-                      <button 
-                        onClick={() => handleDelete(s.id)} 
+                      <button
+                        onClick={() => setSlotToDelete(s.id)}
                         title="Mark slot as unavailable"
                         className="absolute inset-0 bg-red-500/90 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm"
                       >
@@ -134,6 +136,33 @@ export default function DoctorSchedule() {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {slotToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden relative animate-in fade-in zoom-in duration-200">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Slot</h3>
+              <p className="text-gray-600 mb-6 text-sm">Are you sure you want to mark this slot as unavailable? This action cannot be undone.</p>
+              
+              <div className="flex items-center justify-end gap-3 mt-2">
+                <button 
+                  onClick={() => setSlotToDelete(null)}
+                  className="px-4 py-2.5 text-sm hover:bg-gray-100 text-gray-700 font-medium rounded-xl transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={confirmDelete}
+                  className="px-4 py-2.5 text-sm bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl shadow-sm transition-colors"
+                >
+                  Confirm Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
