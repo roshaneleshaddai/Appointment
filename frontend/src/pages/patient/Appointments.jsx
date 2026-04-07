@@ -170,7 +170,7 @@ export default function PatientAppointments() {
                 {/* Actions Section */}
                 <div className="flex flex-row md:flex-col gap-3 justify-end items-end shrink-0 pt-4 md:pt-0 border-t md:border-0 border-gray-100 mt-4 md:mt-0 w-full md:w-auto">
                   {a.status === 'SCHEDULED' && a.mode === 'ONLINE' && (
-                    <button onClick={(e) => e.stopPropagation()} className="flex-1 md:flex-none w-full md:w-[180px] flex items-center justify-center gap-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white px-6 py-3 rounded-[10px] text-[14px] font-bold transition shadow-sm">
+                    <button onClick={(e) => { e.stopPropagation(); window.open(a.linkOrAddress || 'https://meet.google.com/', '_blank'); }} className="flex-1 md:flex-none w-full md:w-[180px] flex items-center justify-center gap-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white px-6 py-3 rounded-[10px] text-[14px] font-bold transition shadow-sm">
                       <Video className="w-[18px] h-[18px]" /> Join Video Call
                     </button>
                   )}

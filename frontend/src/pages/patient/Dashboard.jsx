@@ -111,7 +111,9 @@ export default function PatientDashboard() {
                       </div>
                       
                       {a.mode === 'ONLINE' ? (
-                        <button className="bg-[#EFF6FF] text-[#2563EB] text-[13px] font-semibold px-4 py-1.5 rounded-full hover:bg-blue-100 transition">
+                        <button 
+                          onClick={() => window.open(a.linkOrAddress || 'https://meet.google.com/', '_blank')}
+                          className="bg-[#EFF6FF] text-[#2563EB] text-[13px] font-semibold px-4 py-1.5 rounded-full hover:bg-blue-100 transition">
                           Join Video
                         </button>
                       ) : (
