@@ -9,7 +9,7 @@ const navConfig = {
   patient: [
     { to: '/patient/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/patient/appointments', label: 'My Appointments', icon: CalendarIcon },
-    { to: '/patient/book', label: 'Find Doctors', icon: Search },
+    { to: '/patient/find-doctors', label: 'Find Doctors', icon: Search },
     { to: '/patient/payments', label: 'Payments', icon: CreditCard },
     { to: '/patient/settings', label: 'Settings', icon: Settings },
   ],

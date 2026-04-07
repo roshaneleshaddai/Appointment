@@ -9,6 +9,7 @@ import Register from './pages/public/Register';
 
 // Patient pages
 import PatientDashboard from './pages/patient/Dashboard';
+import FindDoctors from './pages/patient/FindDoctors';
 import BookAppointment from './pages/patient/BookAppointment';
 import PatientAppointments from './pages/patient/Appointments';
 
@@ -40,6 +41,7 @@ function App() {
           {/* Patient Routes */}
           <Route element={<ProtectedLayout allowedRole="patient" />}>
             <Route path="/patient/dashboard" element={<PatientDashboard />} />
+            <Route path="/patient/find-doctors" element={<FindDoctors />} />
             <Route path="/patient/book" element={<BookAppointment />} />
             <Route path="/patient/appointments" element={<PatientAppointments />} />
           </Route>

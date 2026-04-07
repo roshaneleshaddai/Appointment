@@ -38,13 +38,19 @@ async def get_specialties():
 async def get_doctors(
     mode: str = Query(None),
     specialty: str = Query(None),
+    search: str = Query(None, description="Search by doctor name"),
+    location: str = Query(None, description="Search by clinic address/city"),
     db=Depends(get_db),
 ):
-    query: dict = {"active": True}
-    if mode:
+    query: dict = {"role": "DOCTOR"} # We should ensure we are grabbing only doctors
+    if mode and mode.lower() != "any":
         query["mode"] = mode.upper()
-    if specialty:
+    if specialty and specialty.lower() != "any":
         query["specialty"] = {"$regex": specialty, "$options": "i"}
+    if search:
+        query["name"] = {"$regex": search, "$options": "i"}
+    if location:
+        query["clinic_address"] = {"$regex": location, "$options": "i"}
 
     cursor = db.doctors.find(query)
     doctors = []
