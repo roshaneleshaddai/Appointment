@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
-import { ArrowLeft, Bell, Video, MapPin, Calendar, Clock, Paperclip, Send, User, Play, Settings, Map, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Bell, Video, MapPin, Calendar, Clock, Paperclip, Send, User, Play, Settings, Map, ExternalLink, FileText, CheckCircle, Plus, Trash, X } from 'lucide-react';
 
 export default function DoctorAppointmentDetails() {
   const { id } = useParams();
@@ -12,17 +12,23 @@ export default function DoctorAppointmentDetails() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
+  const [prescription, setPrescription] = useState(null);
+  const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [prescForm, setPrescForm] = useState({ diagnosis: '', symptoms: '', notes: '', medicines: [] });
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
     Promise.all([
       api.get(`/api/appointments/doctor/${user.id}`),
-      api.get(`/api/chat/${id}`).catch(() => ({ data: { messages: [] } }))
+      api.get(`/api/chat/${id}`).catch(() => ({ data: { messages: [] } })),
+      api.get(`/api/prescriptions/appointment/${id}`).catch(() => ({ data: null }))
     ])
-      .then(([appRes, chatRes]) => {
+      .then(([appRes, chatRes, presRes]) => {
         const found = appRes.data.appointments?.find((a) => a.id === id);
         setAppointment(found);
         setMessages(chatRes.data.messages || []);
+        if (presRes.data) setPrescription(presRes.data);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -43,6 +49,55 @@ export default function DoctorAppointmentDetails() {
     };
     return () => ws.close();
   }, [id]);
+
+  const handleMarkComplete = async () => {
+    try {
+      if (!window.confirm("Mark appointment as complete?")) return;
+      await api.patch(`/api/appointments/${id}/status`, { status: 'COMPLETED' });
+      setAppointment(prev => ({ ...prev, status: 'COMPLETED' }));
+    } catch (e) {
+      alert("Failed to mark complete");
+    }
+  };
+
+  const handleAddMedicine = () => {
+    setPrescForm(prev => ({ ...prev, medicines: [...prev.medicines, { name: '', dosage: '', duration_days: 1, instructions: '' }] }));
+  };
+
+  const submitPrescription = async () => {
+    try {
+      const payload = {
+        appointment_id: id,
+        diagnosis: prescForm.diagnosis,
+        symptoms: prescForm.symptoms.split(',').map(s => s.trim()).filter(Boolean),
+        medicines: prescForm.medicines,
+        notes: prescForm.notes
+      };
+      let res;
+      if (editMode && prescription?.id) {
+        res = await api.put(`/api/prescriptions/${prescription.id}`, payload);
+      } else {
+        res = await api.post('/api/prescriptions/', payload);
+      }
+      setPrescription(res.data);
+      setShowPrescriptionModal(false);
+      setEditMode(false);
+    } catch (e) {
+      alert(e.response?.data?.detail || "Failed to save prescription");
+    }
+  };
+
+  const handleEditPrescription = () => {
+    if (!prescription) return;
+    setPrescForm({
+      diagnosis: prescription.diagnosis || '',
+      symptoms: Array.isArray(prescription.symptoms) ? prescription.symptoms.join(', ') : '',
+      notes: prescription.notes || '',
+      medicines: prescription.medicines?.map(m => ({ ...m })) || [],
+    });
+    setEditMode(true);
+    setShowPrescriptionModal(true);
+  };
 
   const handleSendMessage = async () => {
     if (!message.trim()) return;
@@ -103,8 +158,20 @@ export default function DoctorAppointmentDetails() {
                   <p className="text-sm text-gray-500 font-medium mb-1">Contact: {appointment.patientContact}</p>
                 </div>
               </div>
-              <div className="bg-green-50 text-green-700 px-4 py-1.5 rounded-full text-sm font-bold shadow-sm whitespace-nowrap self-start md:self-auto">
-                {appointment.status === 'SCHEDULED' ? 'Confirmed' : appointment.status}
+              <div className="flex flex-col md:flex-row items-end md:items-center gap-3">
+                <div className="bg-green-50 text-green-700 px-4 py-1.5 rounded-full text-sm font-bold shadow-sm whitespace-nowrap">
+                  {appointment.status === 'SCHEDULED' ? 'Confirmed' : appointment.status}
+                </div>
+                {appointment.status === 'SCHEDULED' && (
+                  <button onClick={handleMarkComplete} className="text-sm bg-gray-900 border border-transparent hover:bg-gray-800 text-white font-bold py-1.5 px-4 rounded-full shadow-sm transition">
+                    Mark Complete
+                  </button>
+                )}
+                {appointment.status === 'COMPLETED' && !prescription && (
+                  <button onClick={() => setShowPrescriptionModal(true)} className="text-sm bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold py-1.5 px-4 rounded-full shadow-sm transition flex items-center gap-1.5">
+                    <FileText className="w-4 h-4" /> Write Prescription
+                  </button>
+                )}
               </div>
             </div>
 
@@ -136,6 +203,61 @@ export default function DoctorAppointmentDetails() {
                 </div>
               </div>
             </div>
+
+            {/* Prescription Display Card */}
+            {prescription && (
+              <div className="bg-white rounded-2xl border border-blue-100 p-5 shadow-sm">
+                <div className="flex items-center justify-between gap-2 mb-4">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-blue-600" />
+                    <h3 className="font-bold text-gray-900 text-[16px]">Medical Prescription</h3>
+                  </div>
+                  <button
+                    onClick={handleEditPrescription}
+                    className="text-xs bg-blue-50 text-blue-600 font-bold px-3 py-1.5 rounded-lg hover:bg-blue-100 transition flex items-center gap-1.5">
+                    ✏️ Edit Prescription
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <span className="text-[13px] text-gray-500 font-medium block mb-1">Diagnosis</span>
+                    <p className="font-semibold text-gray-900 text-sm">{prescription.diagnosis}</p>
+                  </div>
+                  {prescription.symptoms?.length > 0 && (
+                    <div>
+                      <span className="text-[13px] text-gray-500 font-medium block mb-1">Symptoms</span>
+                      <div className="flex flex-wrap gap-2">
+                        {prescription.symptoms.map((s, i) => (
+                          <span key={i} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-medium">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {prescription.medicines?.length > 0 && (
+                     <div>
+                       <span className="text-[13px] text-gray-500 font-medium block mb-2">Medicines ({prescription.medicines.length})</span>
+                       <div className="grid gap-2">
+                         {prescription.medicines.map((m, i) => (
+                           <div key={i} className="border border-gray-100 rounded-lg p-3 bg-gray-50/50 flex flex-col gap-1">
+                             <div className="flex justify-between items-start">
+                               <span className="font-bold text-sm text-gray-900">{m.name}</span>
+                               <span className="text-xs font-semibold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{m.duration_days} Days</span>
+                             </div>
+                             <span className="text-[13px] font-medium text-gray-600">{m.dosage} — {m.instructions}</span>
+                           </div>
+                         ))}
+                       </div>
+                     </div>
+                  )}
+                  {prescription.notes && (
+                    <div>
+                      <span className="text-[13px] text-gray-500 font-medium block mb-1">Doctor's Notes</span>
+                      <p className="text-sm text-gray-700 bg-yellow-50 p-3 rounded-lg border border-yellow-100 italic">{prescription.notes}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Video Consultation / Clinic Address Card */}
             <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm flex flex-col">
@@ -239,6 +361,64 @@ export default function DoctorAppointmentDetails() {
           </div>
         </div>
       </div>
+
+      {/* Prescription Modal */}
+      {showPrescriptionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
+          <div className="bg-white rounded-[20px] w-full max-w-[600px] max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50/50">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-blue-600" /> {editMode ? 'Edit Prescription' : 'Issue Prescription'}
+              </h2>
+              <button onClick={() => setShowPrescriptionModal(false)} className="text-gray-400 hover:text-gray-700 bg-white shadow-sm p-1.5 rounded-full border border-gray-200">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1 space-y-5">
+              <div>
+                <label className="block text-[13px] font-bold text-gray-700 mb-1">Diagnosis</label>
+                <input type="text" value={prescForm.diagnosis} onChange={e => setPrescForm({...prescForm, diagnosis: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Primary condition..." />
+              </div>
+              <div>
+                <label className="block text-[13px] font-bold text-gray-700 mb-1">Symptoms (comma separated)</label>
+                <input type="text" value={prescForm.symptoms} onChange={e => setPrescForm({...prescForm, symptoms: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Fever, Cough, Headache" />
+              </div>
+              
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-[13px] font-bold text-gray-700">Medicines</label>
+                  <button onClick={handleAddMedicine} className="text-xs bg-blue-50 text-blue-600 font-bold px-2 py-1 rounded-md flex items-center gap-1 hover:bg-blue-100 transition"><Plus className="w-3 h-3" /> Add Item</button>
+                </div>
+                {prescForm.medicines.length === 0 && <p className="text-xs text-gray-400 italic">No medicines added.</p>}
+                <div className="space-y-3">
+                  {prescForm.medicines.map((med, i) => (
+                    <div key={i} className="flex flex-col gap-3 p-3 border border-gray-100 bg-gray-50 rounded-xl relative">
+                      <button onClick={() => setPrescForm(prev => ({...prev, medicines: prev.medicines.filter((_, idx) => idx !== i)}))} className="absolute top-2 right-2 text-red-400 hover:text-red-600"><Trash className="w-4 h-4" /></button>
+                      <div className="grid grid-cols-2 gap-3 pr-8">
+                        <input type="text" placeholder="Medicine Name" value={med.name} onChange={e => { const m = [...prescForm.medicines]; m[i].name = e.target.value; setPrescForm({...prescForm, medicines: m}); }} className="border border-gray-200 rounded-lg px-3 py-2 text-xs w-full focus:ring-1 focus:ring-blue-500 outline-none" />
+                        <input type="text" placeholder="Dosage (e.g., 500mg)" value={med.dosage} onChange={e => { const m = [...prescForm.medicines]; m[i].dosage = e.target.value; setPrescForm({...prescForm, medicines: m}); }} className="border border-gray-200 rounded-lg px-3 py-2 text-xs w-full focus:ring-1 focus:ring-blue-500 outline-none" />
+                        <input type="number" placeholder="Days" value={med.duration_days} onChange={e => { const m = [...prescForm.medicines]; m[i].duration_days = parseInt(e.target.value) || 1; setPrescForm({...prescForm, medicines: m}); }} className="border border-gray-200 rounded-lg px-3 py-2 text-xs w-full focus:ring-1 focus:ring-blue-500 outline-none" min="1" />
+                        <input type="text" placeholder="Instructions" value={med.instructions} onChange={e => { const m = [...prescForm.medicines]; m[i].instructions = e.target.value; setPrescForm({...prescForm, medicines: m}); }} className="border border-gray-200 rounded-lg px-3 py-2 text-xs w-full focus:ring-1 focus:ring-blue-500 outline-none" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[13px] font-bold text-gray-700 mb-1">Additional Notes</label>
+                <textarea rows="3" value={prescForm.notes} onChange={e => setPrescForm({...prescForm, notes: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Drink plenty of water..." />
+              </div>
+            </div>
+
+            <div className="p-5 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 shrink-0">
+              <button onClick={() => { setShowPrescriptionModal(false); setEditMode(false); }} className="px-5 py-2.5 rounded-xl font-bold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 text-sm">Cancel</button>
+              <button onClick={submitPrescription} disabled={!prescForm.diagnosis || prescForm.medicines.length === 0} className="px-5 py-2.5 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-sm shadow-sm">{editMode ? 'Save Changes' : 'Issue Prescription'}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

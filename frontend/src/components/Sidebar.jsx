@@ -10,15 +10,13 @@ const navConfig = {
     { to: '/patient/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/patient/appointments', label: 'My Appointments', icon: CalendarIcon },
     { to: '/patient/find-doctors', label: 'Find Doctors', icon: Search },
-    { to: '/patient/payments', label: 'Payments', icon: CreditCard },
-    { to: '/patient/settings', label: 'Settings', icon: Settings },
   ],
   doctor: [
     { to: '/doctor/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/doctor/patients', label: 'Patients', icon: Users },
     { to: '/doctor/appointments', label: 'Appointments', icon: ClipboardList },
     { to: '/doctor/schedule', label: 'Schedule', icon: CalendarIcon },
-    { to: '/doctor/settings', label: 'Settings', icon: Settings },
+    
   ],
   admin: [
     { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },

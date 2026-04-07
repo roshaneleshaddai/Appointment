@@ -66,3 +66,29 @@ async def get_patient_prescriptions(patient_id: str):
     for doc in docs:
         doc["id"] = str(doc.pop("_id"))
     return {"prescriptions": docs}
+
+
+@router.put("/{prescription_id}")
+async def update_prescription(prescription_id: str, data: PrescriptionCreate):
+    db = get_db()
+    try:
+        oid = ObjectId(prescription_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid prescription ID")
+
+    existing = await db.prescriptions.find_one({"_id": oid})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Prescription not found")
+
+    updated_fields = {
+        "diagnosis": data.diagnosis,
+        "symptoms": data.symptoms,
+        "medicines": [m.dict() for m in data.medicines],
+        "notes": data.notes,
+        "updatedAt": datetime.utcnow(),
+    }
+    await db.prescriptions.update_one({"_id": oid}, {"$set": updated_fields})
+
+    doc = await db.prescriptions.find_one({"_id": oid})
+    doc["id"] = str(doc.pop("_id"))
+    return doc

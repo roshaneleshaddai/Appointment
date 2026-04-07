@@ -178,9 +178,9 @@ export default function PatientDashboard() {
                         <p className="text-sm text-gray-500">{a.specialty}</p>
                       </div>
                       {a.status === 'COMPLETED' ? (
-                        <button className="bg-[#EFF6FF] text-[#2563EB] text-[12px] font-semibold px-3 py-1.5 rounded-lg hover:bg-blue-100 transition">
+                        <Link to={`/patient/appointments/${a.id}`} className="bg-[#EFF6FF] text-[#2563EB] text-[12px] font-semibold px-3 py-1.5 rounded-lg hover:bg-blue-100 transition">
                           View Notes
-                        </button>
+                        </Link>
                       ) : (
                         <span className="text-xs text-red-500 font-semibold bg-red-50 px-2 py-1 rounded">Cancelled</span>
                       )}

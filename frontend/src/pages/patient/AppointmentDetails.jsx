@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
-import { ArrowLeft, Bell, Video, MapPin, Calendar, Clock, Paperclip, Send, Star, Play, Settings, Map, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Bell, Video, MapPin, Calendar, Clock, Paperclip, Send, Star, Play, Settings, Map, ExternalLink, FileText } from 'lucide-react';
 
 export default function AppointmentDetails() {
   const { id } = useParams();
@@ -12,17 +12,20 @@ export default function AppointmentDetails() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
+  const [prescription, setPrescription] = useState(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
     Promise.all([
       api.get(`/api/appointments/patient/${user.id}`),
-      api.get(`/api/chat/${id}`).catch(() => ({ data: { messages: [] } }))
+      api.get(`/api/chat/${id}`).catch(() => ({ data: { messages: [] } })),
+      api.get(`/api/prescriptions/appointment/${id}`).catch(() => ({ data: null }))
     ])
-      .then(([appRes, chatRes]) => {
+      .then(([appRes, chatRes, presRes]) => {
         const found = appRes.data.appointments?.find((a) => a.id === id);
         setAppointment(found);
         setMessages(chatRes.data.messages || []);
+        if (presRes.data) setPrescription(presRes.data);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -144,6 +147,54 @@ export default function AppointmentDetails() {
                 </div>
               </div>
             </div>
+
+            {/* Prescription Display Card */}
+            {prescription && (
+              <div className="bg-white rounded-2xl border border-blue-100 p-5 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <FileText className="w-5 h-5 text-blue-600" />
+                  <h3 className="font-bold text-gray-900 text-[16px]">Medical Prescription</h3>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <span className="text-[13px] text-gray-500 font-medium block mb-1">Diagnosis</span>
+                    <p className="font-semibold text-gray-900 text-sm">{prescription.diagnosis}</p>
+                  </div>
+                  {prescription.symptoms?.length > 0 && (
+                    <div>
+                      <span className="text-[13px] text-gray-500 font-medium block mb-1">Symptoms</span>
+                      <div className="flex flex-wrap gap-2">
+                        {prescription.symptoms.map((s, i) => (
+                          <span key={i} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-medium">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {prescription.medicines?.length > 0 && (
+                     <div>
+                       <span className="text-[13px] text-gray-500 font-medium block mb-2">Medicines ({prescription.medicines.length})</span>
+                       <div className="grid gap-2">
+                         {prescription.medicines.map((m, i) => (
+                           <div key={i} className="border border-gray-100 rounded-lg p-3 bg-gray-50/50 flex flex-col gap-1">
+                             <div className="flex justify-between items-start">
+                               <span className="font-bold text-sm text-gray-900">{m.name}</span>
+                               <span className="text-xs font-semibold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{m.duration_days} Days</span>
+                             </div>
+                             <span className="text-[13px] font-medium text-gray-600">{m.dosage} — {m.instructions}</span>
+                           </div>
+                         ))}
+                       </div>
+                     </div>
+                  )}
+                  {prescription.notes && (
+                    <div>
+                      <span className="text-[13px] text-gray-500 font-medium block mb-1">Doctor's Notes</span>
+                      <p className="text-sm text-gray-700 bg-yellow-50 p-3 rounded-lg border border-yellow-100 italic">{prescription.notes}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Video Consultation / Clinic Address Card */}
             <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm flex flex-col">

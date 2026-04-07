@@ -5,6 +5,7 @@ from routers.auth import get_current_user
 from bson import ObjectId
 from datetime import datetime
 import asyncio
+from utils.email import send_email, appointment_patient_email, appointment_doctor_email
 
 router = APIRouter(prefix="/api/appointments", tags=["appointments"])
 
@@ -99,6 +100,39 @@ async def book_appointment(
         result = await db.appointments.insert_one(appointment)
         appointment["id"] = str(result.inserted_id)
         appointment.pop("_id", None)
+
+        # ── Fire-and-forget email notifications ──────────────────────────
+        patient_email = patient.get("email", "")
+        doctor_email  = doctor.get("email", "")
+        appt_date     = slot["date"]
+        appt_time     = slot["timeSlot"]
+        appt_mode     = doctor["mode"]
+
+        if patient_email:
+            asyncio.create_task(send_email(
+                to=patient_email,
+                subject="✅ Appointment Confirmed — MediCare",
+                html_body=appointment_patient_email(
+                    doctor_name=doctor["name"],
+                    specialty=doctor["specialty"],
+                    date=appt_date,
+                    time_slot=appt_time,
+                    mode=appt_mode,
+                    fee=doctor["fee"],
+                )
+            ))
+        if doctor_email:
+            asyncio.create_task(send_email(
+                to=doctor_email,
+                subject="📅 New Appointment Booked — MediCare",
+                html_body=appointment_doctor_email(
+                    patient_name=patient["name"],
+                    date=appt_date,
+                    time_slot=appt_time,
+                    mode=appt_mode,
+                )
+            ))
+
         return {"message": "Appointment booked successfully", "appointment": appointment}
 
     finally:
