@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 import { Users, Calendar, CheckCircle, XCircle, Clock, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const statusStyle = {
   SCHEDULED: 'bg-blue-100 text-blue-700',
@@ -11,6 +12,7 @@ const statusStyle = {
 
 export default function DoctorAppointments() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dateFilter, setDateFilter] = useState('');
@@ -132,7 +134,11 @@ export default function DoctorAppointments() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {appointments.map((a) => (
-                <tr key={a.id} className="hover:bg-gray-50/50 transition">
+                <tr 
+                  key={a.id} 
+                  onClick={() => navigate(`/doctor/appointments/${a.id}`)}
+                  className="hover:bg-gray-50/50 transition cursor-pointer"
+                >
                   <td className="py-3 px-5">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold text-xs flex-shrink-0">
@@ -161,7 +167,7 @@ export default function DoctorAppointments() {
                     {a.status === 'SCHEDULED' && (
                       <div className="flex gap-1.5">
                         <button
-                          onClick={() => updateStatus(a.id, 'COMPLETED')}
+                          onClick={(e) => { e.stopPropagation(); updateStatus(a.id, 'COMPLETED'); }}
                           disabled={updating === a.id}
                           className="flex items-center gap-1 bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-green-700 transition disabled:opacity-50"
                         >
@@ -169,7 +175,7 @@ export default function DoctorAppointments() {
                           Complete
                         </button>
                         <button
-                          onClick={() => updateStatus(a.id, 'CANCELLED')}
+                          onClick={(e) => { e.stopPropagation(); updateStatus(a.id, 'CANCELLED'); }}
                           disabled={updating === a.id}
                           className="flex items-center gap-1 border border-gray-200 text-gray-500 px-3 py-1.5 rounded-lg text-xs font-medium hover:text-red-500 hover:border-red-300 transition disabled:opacity-50"
                         >

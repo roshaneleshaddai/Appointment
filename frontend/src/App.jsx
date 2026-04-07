@@ -19,6 +19,7 @@ import DoctorDashboard from './pages/doctor/Dashboard';
 import DoctorSchedule from './pages/doctor/Schedule';
 import DoctorAppointments from './pages/doctor/Appointments';
 import DoctorPatients from './pages/doctor/Patients';
+import DoctorAppointmentDetails from './pages/doctor/AppointmentDetails';
 
 // Admin pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -55,6 +56,7 @@ function App() {
             <Route path="/doctor/patients" element={<DoctorPatients />} />
             <Route path="/doctor/schedule" element={<DoctorSchedule />} />
             <Route path="/doctor/appointments" element={<DoctorAppointments />} />
+            <Route path="/doctor/appointments/:id" element={<DoctorAppointmentDetails />} />
           </Route>
 
           {/* Admin Routes */}
