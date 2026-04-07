@@ -1,12 +1,26 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from prisma import Prisma
+from contextlib import asynccontextmanager
+from database import connect_db, disconnect_db, connect_redis, disconnect_redis
+from routers import auth, doctors, schedule, appointments, admin, prescriptions, reviews
 
-app = FastAPI()
-prisma = Prisma()
 
-# Enable CORS for the frontend
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await connect_db()
+    await connect_redis()
+    yield
+    await disconnect_db()
+    await disconnect_redis()
+
+
+app = FastAPI(
+    title="MediCare API",
+    description="Medical Appointment Booking System",
+    version="1.0.0",
+    lifespan=lifespan,
+)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,33 +29,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.on_event("startup")
-async def startup():
-    await prisma.connect()
+app.include_router(auth.router)
+app.include_router(doctors.router)
+app.include_router(schedule.router)
+app.include_router(appointments.router)
+app.include_router(admin.router)
+app.include_router(prescriptions.router)
+app.include_router(reviews.router)
 
-@app.on_event("shutdown")
-async def shutdown():
-    await prisma.disconnect()
-
-class UserCreate(BaseModel):
-    email: str
-    name: str = None
 
 @app.get("/")
-def read_root():
-    return {"message": "Welcome to FastAPI Backend with Prisma!"}
-
-@app.post("/users/")
-async def create_user(user: UserCreate):
-    created_user = await prisma.user.create(
-        data={
-            "email": user.email,
-            "name": user.name
-        }
-    )
-    return created_user
-
-@app.get("/users/")
-async def get_users():
-    users = await prisma.user.find_many()
-    return users
+def root():
+    return {"message": "MediCare API is running", "docs": "/docs"}
