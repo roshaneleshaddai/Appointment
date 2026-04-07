@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { Video, MapPin, Calendar, Search, ExternalLink, Filter, Clock, Map } from 'lucide-react';
 
@@ -10,6 +10,7 @@ export default function PatientAppointments() {
   const { user } = useAuth();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('All');
   const [search, setSearch] = useState('');
 
@@ -111,7 +112,10 @@ export default function PatientAppointments() {
       ) : (
         <div className="space-y-5">
           {filtered.map((a) => (
-            <div key={a.id} className={`bg-white rounded-[16px] border border-[#E5E7EB] p-6 shadow-[0_1px_2px_0_rgba(0,0,0,0.02)] ${a.status === 'CANCELLED' ? 'opacity-60 grayscale-[0.2]' : ''}`}>
+            <div 
+              key={a.id} 
+              onClick={() => navigate(`/patient/appointments/${a.id}`)}
+              className={`bg-white rounded-[16px] border border-[#E5E7EB] p-6 shadow-[0_1px_2px_0_rgba(0,0,0,0.02)] cursor-pointer hover:shadow-md transition-shadow ${a.status === 'CANCELLED' ? 'opacity-60 grayscale-[0.2]' : ''}`}>
               <div className="flex flex-col md:flex-row md:items-start gap-6">
                 
                 {/* Avatar Stack */}
@@ -166,17 +170,17 @@ export default function PatientAppointments() {
                 {/* Actions Section */}
                 <div className="flex flex-row md:flex-col gap-3 justify-end items-end shrink-0 pt-4 md:pt-0 border-t md:border-0 border-gray-100 mt-4 md:mt-0 w-full md:w-auto">
                   {a.status === 'SCHEDULED' && a.mode === 'ONLINE' && (
-                    <button className="flex-1 md:flex-none w-full md:w-auto flex items-center justify-center gap-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white px-6 py-3 rounded-[10px] text-[14px] font-bold transition shadow-sm">
+                    <button onClick={(e) => e.stopPropagation()} className="flex-1 md:flex-none w-full md:w-[180px] flex items-center justify-center gap-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white px-6 py-3 rounded-[10px] text-[14px] font-bold transition shadow-sm">
                       <Video className="w-[18px] h-[18px]" /> Join Video Call
                     </button>
                   )}
                   {a.status === 'SCHEDULED' && a.mode === 'OFFLINE' && (
-                    <button className="flex-1 md:flex-none w-full md:w-[180px] flex items-center justify-center gap-2 bg-[#3B82F6] hover:bg-[#2563EB] text-white px-6 py-3 rounded-[10px] text-[14px] font-bold transition shadow-sm">
+                    <button onClick={(e) => e.stopPropagation()} className="flex-1 md:flex-none w-full md:w-[180px] flex items-center justify-center gap-2 bg-[#3B82F6] hover:bg-[#2563EB] text-white px-6 py-3 rounded-[10px] text-[14px] font-bold transition shadow-sm">
                       <ExternalLink className="w-[18px] h-[18px]" /> Get Directions
                     </button>
                   )}
                   {a.status === 'SCHEDULED' && (
-                    <button onClick={() => handleCancel(a.id)}
+                    <button onClick={(e) => { e.stopPropagation(); handleCancel(a.id); }}
                       className="flex-1 md:flex-none w-full md:w-[180px] flex items-center justify-center gap-2 bg-white border border-[#E5E7EB] text-[#4B5563] px-6 py-3 rounded-[10px] text-[14px] font-bold hover:bg-gray-50 transition shadow-sm">
                       <Calendar className="w-[18px] h-[18px]" /> Cancel
                     </button>

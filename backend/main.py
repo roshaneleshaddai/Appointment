@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from database import connect_db, disconnect_db, connect_redis, disconnect_redis
-from routers import auth, doctors, schedule, appointments, admin, prescriptions, reviews
+from routers import auth, doctors, schedule, appointments, admin, prescriptions, reviews, chat
 
 
 @asynccontextmanager
@@ -36,6 +36,7 @@ app.include_router(appointments.router)
 app.include_router(admin.router)
 app.include_router(prescriptions.router)
 app.include_router(reviews.router)
+app.include_router(chat.router)
 
 
 @app.get("/")
